@@ -3,7 +3,8 @@ module.exports = {
     'eslint:recommended',
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
-    'plugin:prettier/recommended'
+    'plugin:prettier/recommended',
+    // 'plugin:@typescript-eslint/naming-convention',
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -12,10 +13,7 @@ module.exports = {
   },
   plugins: ['@typescript-eslint'],
   rules: {
-    '@typescript-eslint/interface-name-prefix': [
-      'error',
-      { prefixWithI: 'always' }
-    ],
+    '@typescript-eslint/naming-convention': 'warn',
     '@typescript-eslint/no-unused-vars': ['warn', { args: 'none' }],
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-namespace': 'off',
@@ -27,6 +25,6 @@ module.exports = {
     ],
     curly: ['error', 'all'],
     eqeqeq: 'error',
-    'prefer-arrow-callback': 'error'
+    'prefer-arrow-callback': 'error',
   }
 };
