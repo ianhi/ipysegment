@@ -11,7 +11,7 @@ class DrawingApp {
 
   private clickX: number[] = [];
   private clickY: number[] = [];
-
+  // private colors: string[] = ['rgb(1,0,0)'];
   private colonyCount = 0;
   private colonyCountDisplay: HTMLElement;
   constructor() {
@@ -43,7 +43,8 @@ class DrawingApp {
     this.classContext = this.classCanvas.getContext('2d');
     this.classCanvas.width = this.imgCanvas.width;
     this.classCanvas.height = this.imgCanvas.height;
-    this.classContext.fillStyle = 'rgb(1,0,0)';
+    // this.classContext.fillStyle = this.colors[0];
+    this.classContext.fillStyle = 'rgb(0,255,255)';
     this.context.imageSmoothingEnabled = true;
 
     this.colonyCountDisplay = document.getElementById('colonyCounter');
@@ -53,6 +54,7 @@ class DrawingApp {
     this.img.onload = (): void => {
       this.drawImageScaled();
     };
+    // this.colors[0] = [1, 1, 1];
 
     //this.redraw();
     this.lassoing = false;
@@ -69,6 +71,8 @@ class DrawingApp {
   }
 
   private drawImageScaled(): void {
+    // should try to follow tips here: https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Optimizing_canvas
+    // to not always scale the image. 
     const canvas = this.imgContext.canvas;
     const img = this.img;
     const hRatio = canvas.width / img.width;
@@ -125,18 +129,20 @@ class DrawingApp {
       this.path.closePath();
       this.imgContext.fill(this.path);
       this.context.save();
-      this.context.fillStyle = 'rgba(100, 250, 100, 255)';
+      this.context.fillStyle = 'rgba(255, 10, 100, 55)';
       this.context.fill(this.path);
       this.context.restore();
-      //      this.imgContext.drawImage(this.canvas, 0, 0);
-      this.lassoing = false;
-      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      this.classContext.fill(this.path);
       this.drawImageScaled();
+      this.lassoing = false;
+      // this.classContext.fillStyle = 'rgb('
+      this.classContext.fill(this.path);
       // this.imgContext.drawImage(this.img, 0, 0);
       this.imgContext.globalAlpha = 0.4;
       this.imgContext.drawImage(this.classCanvas, 0, 0);
+      // this.imgContext.fillStyle = 'rgb(255,0,0)';
+      // this.imgContext.drawImage(this.canvas, 0, 0);
       this.imgContext.globalAlpha = 1;
+      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
   };
 
