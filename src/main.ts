@@ -1,4 +1,6 @@
 class DrawingApp {
+  private classCanvas: HTMLCanvasElement;
+  private classContext: CanvasRenderingContext2D;
   private imgCanvas: HTMLCanvasElement;
   private imgContext: CanvasRenderingContext2D;
   private canvas: HTMLCanvasElement;
@@ -36,6 +38,12 @@ class DrawingApp {
     this.context.lineWidth = 2;
     this.path = new Path2D();
 
+    // this can be an offscreen canvas after https://bugzil.la/1390089
+    this.classCanvas = document.createElement('canvas');
+    this.classContext = this.classCanvas.getContext('2d');
+    this.classCanvas.width = this.imgCanvas.width;
+    this.classCanvas.height = this.imgCanvas.height;
+    this.classContext.fillStyle = 'rgb(1,0,0)';
     this.context.imageSmoothingEnabled = true;
 
     this.colonyCountDisplay = document.getElementById('colonyCounter');
@@ -123,6 +131,12 @@ class DrawingApp {
       //      this.imgContext.drawImage(this.canvas, 0, 0);
       this.lassoing = false;
       this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.classContext.fill(this.path);
+      this.drawImageScaled();
+      // this.imgContext.drawImage(this.img, 0, 0);
+      this.imgContext.globalAlpha = 0.4;
+      this.imgContext.drawImage(this.classCanvas, 0, 0);
+      this.imgContext.globalAlpha = 1;
     }
   };
 
