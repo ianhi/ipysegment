@@ -1,133 +1,121 @@
 class DrawingApp {
   private classCanvas: HTMLCanvasElement;
   private classContext: CanvasRenderingContext2D;
-  private imgCanvas: HTMLCanvasElement;
-  private imgContext: CanvasRenderingContext2D;
-  private canvas: HTMLCanvasElement;
+  private displayCanvas: HTMLCanvasElement;
+  private displayCtx: CanvasRenderingContext2D;
+  private previewCanvas: HTMLCanvasElement;
   private context: CanvasRenderingContext2D;
   private img: HTMLImageElement;
   private lassoing: boolean;
   private path: Path2D;
 
-  private clickX: number[] = [];
-  private clickY: number[] = [];
   // private colors: string[] = ['rgb(1,0,0)'];
-  private colonyCount = 0;
-  private colonyCountDisplay: HTMLElement;
+  private maxCanvasWidth = 500;
+  private aspectRatio = 1;
+
   constructor() {
-    const imgCanvas = document.getElementById(
-      'img-canvas'
-    ) as HTMLCanvasElement;
+    this.displayCanvas = document.createElement('canvas');
+    const div = document.getElementById('yikes');
+    div.appendChild(this.displayCanvas);
+    this.displayCanvas.width = 200;
 
-    const imgContext = imgCanvas.getContext('2d');
-    imgContext.lineCap = 'round';
-    imgContext.lineJoin = 'round';
-    imgContext.fillStyle = 'rgba(255, 0, 0, 0.5)';
-    imgContext.lineWidth = 2;
-    this.imgCanvas = imgCanvas;
-    this.imgContext = imgContext;
-    this.imgContext.fillStyle = 'rgba(50, 200, 100, .7)'; //'#a4fae3';
+    const displayCtx = this.displayCanvas.getContext('2d');
+    displayCtx.lineCap = 'round';
+    displayCtx.lineJoin = 'round';
+    displayCtx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+    displayCtx.lineWidth = 2;
+    // this.displayCanvas = this.displayCanvas;
+    this.displayCtx = displayCtx;
+    this.displayCtx.fillStyle = 'rgba(50, 200, 100, .7)'; //'#a4fae3';
 
-    this.canvas = document.createElement('canvas');
-    this.canvas.id = 'preview';
-    this.canvas.width = this.imgCanvas.width;
-    this.canvas.height = this.imgCanvas.height;
-    this.imgCanvas.parentNode.appendChild(this.canvas);
-    this.context = this.canvas.getContext('2d');
-    this.context.fillStyle = 'rgba(255, 0, 0, .3)'; //'#a4fae3';
-    this.context.lineWidth = 2;
-    this.path = new Path2D();
+    this.previewCanvas = document.createElement('canvas');
+    this.previewCanvas.id = 'preview';
+    this.displayCanvas.parentNode.appendChild(this.previewCanvas);
+    this.context = this.previewCanvas.getContext('2d');
 
     // this can be an offscreen canvas after https://bugzil.la/1390089
     this.classCanvas = document.createElement('canvas');
     this.classContext = this.classCanvas.getContext('2d');
-    this.classCanvas.width = this.imgCanvas.width;
-    this.classCanvas.height = this.imgCanvas.height;
+    // this.classCanvas.width = this.displayCanvas.width;
+    // this.classCanvas.height = this.displayCanvas.height;
     // this.classContext.fillStyle = this.colors[0];
-    this.classContext.fillStyle = 'rgb(0,255,255)';
-    this.context.imageSmoothingEnabled = true;
-
-    this.colonyCountDisplay = document.getElementById('colonyCounter');
 
     this.img = new Image();
     this.img.src = 'colonies.png';
     this.img.onload = (): void => {
+      this.aspectRatio = this.img.width / this.img.height;
+      if (this.img.width > this.maxCanvasWidth) {
+        this.displayCanvas.width = this.maxCanvasWidth;
+        this.displayCanvas.height = this.displayCanvas.width / this.aspectRatio;
+      } else {
+        this.displayCanvas.width = this.img.width;
+        this.displayCanvas.height = this.img.height;
+      }
+      this.previewCanvas.width = this.displayCanvas.width;
+      this.previewCanvas.height = this.displayCanvas.height;
+      this.classCanvas.width = this.displayCanvas.width;
+      this.classCanvas.height = this.displayCanvas.height;
+      this.context.fillStyle = 'rgba(255, 0, 0, .3)'; //'#a4fae3';
+      this.context.lineWidth = 2;
+      this.classContext.fillStyle = 'rgb(0,255,255)';
+      this.context.imageSmoothingEnabled = true;
+      this.path = new Path2D();
       this.drawImageScaled();
     };
-    // this.colors[0] = [1, 1, 1];
 
-    //this.redraw();
     this.lassoing = false;
     this.createUserEvents();
+    document.getElementById('color1').addEventListener('click', () => {
+      this.classContext.fillStyle = 'rgb(255,0,0)';
+    });
+    document.getElementById('color2').addEventListener('click', () => {
+      this.classContext.fillStyle = 'rgb(0,255,0)';
+    });
   }
   private createUserEvents(): void {
-    this.canvas.addEventListener('mousedown', this._mouseDown);
-    this.canvas.addEventListener('mouseup', this._mouseUp);
-    this.canvas.addEventListener('mousemove', this._mouseMove);
-
-    document
-      .getElementById('clear')
-      .addEventListener('click', this.clearEventHandler);
+    this.previewCanvas.addEventListener('mousedown', this._mouseDown);
+    this.previewCanvas.addEventListener('mouseup', this._mouseUp);
+    this.previewCanvas.addEventListener('mousemove', this._mouseMove);
   }
 
   private drawImageScaled(): void {
     // should try to follow tips here: https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Optimizing_canvas
-    // to not always scale the image. 
-    const canvas = this.imgContext.canvas;
+    // to not always scale the image.
+    const canvas = this.displayCanvas;
     const img = this.img;
     const hRatio = canvas.width / img.width;
     const vRatio = canvas.height / img.height;
     const ratio = Math.min(hRatio, vRatio);
-    const shiftX = (canvas.width - img.width * ratio) / 2;
-    const shiftY = (canvas.height - img.height * ratio) / 2;
-    this.imgContext.drawImage(
+    // const shiftX = (canvas.width - img.width * ratio) / 2;
+    // const shiftY = (canvas.height - img.height * ratio) / 2;
+    this.displayCtx.drawImage(
       img,
       0,
       0,
       img.width,
       img.height,
-      shiftX,
-      shiftY,
+      // shiftX,
+      // shiftY,
+      0,
+      0,
       img.width * ratio,
       img.height * ratio
     );
   }
 
-  private addClick(x: number, y: number): void {
-    this.clickX.push(x);
-    this.clickY.push(y);
-    this.colonyCount++;
-    this.updateCounterDisplay();
-  }
-
-  private updateCounterDisplay(): void {
-    this.colonyCountDisplay.innerHTML =
-      'Colony Count : ' + this.colonyCount.toString();
-  }
-
-  private clearCanvas(): void {
-    this.drawImageScaled();
-    this.clickX = [];
-    this.clickY = [];
-  }
-
   private canvasCoords(e: MouseEvent): [number, number] {
     let mouseX = e.offsetX;
     let mouseY = e.offsetY;
-    mouseX -= this.canvas.offsetLeft;
-    mouseY -= this.canvas.offsetTop;
+    mouseX -= this.previewCanvas.offsetLeft;
+    mouseY -= this.previewCanvas.offsetTop;
     return [mouseX, mouseY];
   }
-  private clearEventHandler = (): void => {
-    ///    this.imgContext.scale(.5,.5);
-    this.clearCanvas();
-  };
 
   private _mouseUp = (e: MouseEvent): void => {
     if (this.lassoing) {
-      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.context.clearRect(0, 0, this.previewCanvas.width, this.previewCanvas.height);
       this.path.closePath();
-      this.imgContext.fill(this.path);
+      this.displayCtx.fill(this.path);
       this.context.save();
       this.context.fillStyle = 'rgba(255, 10, 100, 55)';
       this.context.fill(this.path);
@@ -136,20 +124,20 @@ class DrawingApp {
       this.lassoing = false;
       // this.classContext.fillStyle = 'rgb('
       this.classContext.fill(this.path);
-      // this.imgContext.drawImage(this.img, 0, 0);
-      this.imgContext.globalAlpha = 0.4;
-      this.imgContext.drawImage(this.classCanvas, 0, 0);
-      // this.imgContext.fillStyle = 'rgb(255,0,0)';
-      // this.imgContext.drawImage(this.canvas, 0, 0);
-      this.imgContext.globalAlpha = 1;
-      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      // this.displayCtx.drawImage(this.img, 0, 0);
+      this.displayCtx.globalAlpha = 0.4;
+      this.displayCtx.drawImage(this.classCanvas, 0, 0);
+      // this.displayCtx.fillStyle = 'rgb(255,0,0)';
+      // this.displayCtx.drawImage(this.previewCanvas, 0, 0);
+      this.displayCtx.globalAlpha = 1;
+      this.context.clearRect(0, 0, this.previewCanvas.width, this.previewCanvas.height);
     }
   };
 
   private _mouseMove = (e: MouseEvent): void => {
     console.log(this.lassoing);
     if (this.lassoing) {
-      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.context.clearRect(0, 0, this.previewCanvas.width, this.previewCanvas.height);
       const [mouseX, mouseY] = this.canvasCoords(e);
       this.path.lineTo(mouseX, mouseY);
       const closedPath = new Path2D(this.path);
@@ -169,9 +157,10 @@ class DrawingApp {
     this.path.moveTo(mouseX, mouseY);
     // probs need to check the mousebutton here
     // also if already lassoing, otherwise it possible to start multiple lassos
-    this.addClick(mouseX, mouseY);
     this.lassoing = true;
   };
 }
 
-new DrawingApp();
+window.onload = () => {
+  new DrawingApp();
+};
