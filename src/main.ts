@@ -7,6 +7,7 @@ class DrawingApp {
   private context: CanvasRenderingContext2D;
   private img: HTMLImageElement;
   private lassoing: boolean;
+  private panning: boolean;
   private path: Path2D;
 
   // private colors: string[] = ['rgb(1,0,0)'];
@@ -17,6 +18,8 @@ class DrawingApp {
   private _Sy = 0;
   private _sWidth = 0;
   private _sHeight = 0;
+  private _panStartX = 0;
+  private _panStartY = 0;
 
   constructor() {
     this.displayCanvas = document.createElement('canvas');
@@ -82,15 +85,22 @@ class DrawingApp {
     });
   }
   private createUserEvents(): void {
+    this.previewCanvas.addEventListener('mouseout', this._mouseOut);
+    this.previewCanvas.addEventListener('mouseenter', this._mouseEnter);
     this.previewCanvas.addEventListener('mousedown', this._mouseDown);
     this.previewCanvas.addEventListener('mouseup', this._mouseUp);
     this.previewCanvas.addEventListener('mousemove', this._mouseMove);
     this.previewCanvas.addEventListener('wheel', this._wheel);
+    this.previewCanvas.addEventListener('contextmenu', e => {
+      e.preventDefault();
+    });
   }
 
   private drawImageScaled(): void {
     // at some point should consider: https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Optimizing_canvas
-    // to not always scale the image. But maybe not necessary, I still seem to get 60 fps per firefox devtools performance thing
+    // to not always scale the image. But maybe not necessary, I still seem to get 60 fps
+    // according to the firefox devtools performance thing
+    this.displayCtx.clearRect(0, 0, this.displayCanvas.width, this.displayCanvas.height);
     const img = this.img;
     this.displayCtx.drawImage(
       img,
@@ -151,6 +161,7 @@ class DrawingApp {
       this.lassoing = false;
       this.context.clearRect(0, 0, this.previewCanvas.width, this.previewCanvas.height);
     }
+    this.panning = false;
   };
 
   private _mouseMove = (e: MouseEvent): void => {
@@ -163,6 +174,11 @@ class DrawingApp {
       this.context.fill(closedPath);
       this.context.setLineDash([15, 5]);
       this.context.stroke(this.path);
+    } else if (this.panning) {
+      const [x, y] = this.canvasCoords(e);
+      this._Sx = this._panStartX - (x * this.intrinsicZoom) / this.userZoom;
+      this._Sy = this._panStartY - (y * this.intrinsicZoom) / this.userZoom;
+      this.drawImageScaled();
     }
   };
 
@@ -171,11 +187,55 @@ class DrawingApp {
   // the clicked element
   private _mouseDown = (e: MouseEvent): void => {
     const [mouseX, mouseY] = this.canvasCoords(e);
-    this.path = new Path2D();
-    this.path.moveTo(mouseX, mouseY);
-    // probs need to check the mousebutton here
-    // also if already lassoing, otherwise it possible to start multiple lassos
-    this.lassoing = true;
+    if (e.button === 0) {
+      this.path = new Path2D();
+      this.path.moveTo(mouseX, mouseY);
+      this.lassoing = true;
+    } else if (e.button === 1 || e.button === 2) {
+      this._panStartX = this._Sx + (mouseX * this.intrinsicZoom) / this.userZoom;
+      this._panStartY = this._Sy + (mouseY * this.intrinsicZoom) / this.userZoom;
+      this.panning = true;
+      e.preventDefault();
+    }
+  };
+
+  private clamp(num: number, min: number, max: number): number {
+    return Math.min(Math.max(min, num), max);
+  }
+  private _mouseOut = (e: MouseEvent): void => {
+    // probably could use a _mouseEnter listener as well
+    // to detect if you leave with the mouse down and then release the mouse
+    // then re-enter
+
+
+    // maybe need to check that its not also triggering a mousemove when re-entering
+    if (this.lassoing) {
+      let [mouseX, mouseY] = this.canvasCoords(e);
+      mouseX = this.clamp(mouseX, 1, this.previewCanvas.width);
+      mouseY = this.clamp(mouseY, 1, this.previewCanvas.height);
+      this.path.moveTo(mouseX, mouseY);
+      
+      console.log(mouseX);
+      console.log(mouseY);
+      e.preventDefault();
+    }
+    this.panning = false;
+  };
+
+  // this currently doesn't work very well. seems like the coordinates are outside 
+  // the acutal canvas area???
+  private _mouseEnter = (e: MouseEvent): void => {
+    if (this.lassoing) {
+      if (e.buttons === 0) {
+        this.lassoing = false;
+      } else {
+        const [mouseX, mouseY] = this.canvasCoords(e);
+        console.log(mouseX);
+        console.log(mouseY);
+        this.path.moveTo(mouseX, mouseY);
+        // return;// this.path.moveTo(...this.canvasCoords(e));
+      }
+    }
   };
 
   private _wheel = (e: MouseWheelEvent): void => {
@@ -197,6 +257,9 @@ class DrawingApp {
     const newDown = down / scale;
     this._Sx = X - newLeft;
     this._Sy = Y - newDown;
+
+    // currently this is somewhat jerky if you have also panned to outside the image bounds
+    // not sure how to easily fix that - but doesn't seem that crucial
     if (this._sWidth > this.img.width) {
       this._Sx = (this.img.width - this._sWidth) / 2;
       this.displayCtx.clearRect(0, 0, this.displayCanvas.width, this.displayCanvas.height);
