@@ -163,15 +163,6 @@ class DrawingApp {
       this.context.restore();
       this.drawImageScaled();
       this.lassoing = false;
-      // this.classContext.fillStyle = 'rgb('
-      // somehow gotta scale up the path here?
-      // this.classContext.fill(this.path);
-      // this.displayCtx.drawImage(this.img, 0, 0);
-      this.displayCtx.globalAlpha = 0.4;
-      // this.displayCtx.drawImage(this.classCanvas, 0, 0);
-      // this.displayCtx.fillStyle = 'rgb(255,0,0)';
-      // this.displayCtx.drawImage(this.previewCanvas, 0, 0);
-      this.displayCtx.globalAlpha = 1;
       this.context.clearRect(0, 0, this.previewCanvas.width, this.previewCanvas.height);
     }
   };
@@ -227,6 +218,14 @@ class DrawingApp {
     }
     this._Sx = X - newLeft;
     this._Sy = Y - newDown;
+    if (this._sWidth > this.img.width) {
+      this._Sx = (this.img.width - this._sWidth) / 2;
+      this.displayCtx.clearRect(0, 0, this.displayCanvas.width, this.displayCanvas.height);
+    }
+    if (this._sHeight > this.img.height) {
+      this._Sy = (this.img.height - this._sHeight) / 2;
+      this.displayCtx.clearRect(0, 0, this.displayCanvas.width, this.displayCanvas.height);
+    }
     this.drawImageScaled();
     e.preventDefault();
   };
