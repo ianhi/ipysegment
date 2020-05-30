@@ -29,7 +29,6 @@ class DrawingApp {
     displayCtx.lineJoin = 'round';
     displayCtx.fillStyle = 'rgba(255, 0, 0, 0.5)';
     displayCtx.lineWidth = 2;
-    // this.displayCanvas = this.displayCanvas;
     this.displayCtx = displayCtx;
     this.displayCtx.fillStyle = 'rgba(50, 200, 100, .7)'; //'#a4fae3';
 
@@ -41,9 +40,6 @@ class DrawingApp {
     // this can be an offscreen canvas after https://bugzil.la/1390089
     this.classCanvas = document.createElement('canvas');
     this.classContext = this.classCanvas.getContext('2d');
-    // this.classCanvas.width = this.displayCanvas.width;
-    // this.classCanvas.height = this.displayCanvas.height;
-    // this.classContext.fillStyle = this.colors[0];
 
     this.img = new Image();
     this.img.src = 'colonies.png';
@@ -70,6 +66,8 @@ class DrawingApp {
       this.context.lineWidth = 2;
       this.classContext.fillStyle = 'rgb(0,255,255)';
       this.context.imageSmoothingEnabled = true;
+      this.displayCtx.imageSmoothingEnabled = false;
+      this.classContext.imageSmoothingEnabled = false;
       this.path = new Path2D();
       this.drawImageScaled();
     };
@@ -91,19 +89,9 @@ class DrawingApp {
   }
 
   private drawImageScaled(): void {
-    // should try to follow tips here: https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Optimizing_canvas
-    // to not always scale the image.
-    // const canvas = this.displayCanvas;
+    // at some point should consider: https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Optimizing_canvas
+    // to not always scale the image. But maybe not necessary, I still seem to get 60 fps per firefox devtools performance thing
     const img = this.img;
-    // const hRatio = canvas.width / img.width;
-    // const vRatio = canvas.height / img.height;
-    // const ratio = Math.min(hRatio, vRatio);
-    // console.log(this.intrinsicZoom);
-    const sWidth = this.img.width / this.userZoom;
-    const sHeight = this.img.height / this.userZoom;
-    // console.log(sWidth);
-    // const shiftX = (canvas.width - img.width * ratio) / 2;
-    // const shiftY = (canvas.height - img.height * ratio) / 2;
     this.displayCtx.drawImage(
       img,
       this._Sx, // sx
@@ -121,8 +109,8 @@ class DrawingApp {
       this.classCanvas,
       this._Sx, // sx
       this._Sy, // sy
-      sWidth,
-      sHeight,
+      this._sWidth,
+      this._sHeight,
       0, // dx
       0, // dy
       this.displayCanvas.width,
@@ -157,8 +145,6 @@ class DrawingApp {
         this._Sy,
         this._sWidth,
         this._sHeight
-        // (this.previewCanvas.width * this.intrinsicZoom) / this.userZoom,
-        // (this.previewCanvas.height * this.intrinsicZoom) / this.userZoom
       );
       this.context.restore();
       this.drawImageScaled();
@@ -168,7 +154,6 @@ class DrawingApp {
   };
 
   private _mouseMove = (e: MouseEvent): void => {
-    // console.log(this.lassoing);
     if (this.lassoing) {
       this.context.clearRect(0, 0, this.previewCanvas.width, this.previewCanvas.height);
       const [mouseX, mouseY] = this.canvasCoords(e);
@@ -185,7 +170,6 @@ class DrawingApp {
   // using this to refer to the Drawing rather than
   // the clicked element
   private _mouseDown = (e: MouseEvent): void => {
-    console.log(this._Sx);
     const [mouseX, mouseY] = this.canvasCoords(e);
     this.path = new Path2D();
     this.path.moveTo(mouseX, mouseY);
@@ -195,27 +179,22 @@ class DrawingApp {
   };
 
   private _wheel = (e: MouseWheelEvent): void => {
-    // console.log(e);
-    // console.log(e.deltaY);
-    // console.log(e.offsetY);
+    let scale;
+    if (e.deltaY < 0) {
+      scale = 1.1;
+    } else if (e.deltaY > 0) {
+      scale = 1 / 1.1;
+    }
     const [x, y] = this.canvasCoords(e);
     const left = (x * this.intrinsicZoom) / this.userZoom;
     const down = (y * this.intrinsicZoom) / this.userZoom;
     const X = this._Sx + left;
     const Y = this._Sy + down;
-    let newLeft = left / 1.1;
-    let newDown = down / 1.1;
-    if (e.deltaY < 0) {
-      this.userZoom *= 1.1;
-      this._sWidth /= 1.1;
-      this._sHeight /= 1.1;
-    } else if (e.deltaY > 0) {
-      this.userZoom /= 1.1;
-      newLeft = left * 1.1;
-      newDown = down * 1.1;
-      this._sWidth *= 1.1;
-      this._sHeight *= 1.1;
-    }
+    this.userZoom *= scale;
+    this._sWidth /= scale;
+    this._sHeight /= scale;
+    const newLeft = left / scale;
+    const newDown = down / scale;
     this._Sx = X - newLeft;
     this._Sy = Y - newDown;
     if (this._sWidth > this.img.width) {
