@@ -13,6 +13,9 @@ module.exports = {
   },
   plugins: ['@typescript-eslint'],
   rules: {
+    // '@typescript-eslint/max-len' : [
+    //   'warn', {'code': 120}],"
+    "max-len": ["error", {"code": 100, "ignoreUrls": true}],
     '@typescript-eslint/naming-convention': 'warn',
     '@typescript-eslint/no-unused-vars': ['warn', { args: 'none' }],
     '@typescript-eslint/no-explicit-any': 'off',
