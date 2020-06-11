@@ -63,7 +63,9 @@ class segmentModel extends DOMWidgetModel {
     // this.previewCanvas.addEventListener('mouseup', this._mouseUp);
     this.displayContext.imageSmoothingEnabled = false;
     this.classContext.imageSmoothingEnabled = false;
-      this.path = new Path2D();
+    this.path = new Path2D();
+    this.listenersAdded = false;
+    
   }
 
   private onCommand(command: any, buffers: any){
@@ -97,6 +99,7 @@ class segmentModel extends DOMWidgetModel {
   classContext: CanvasRenderingContext2D;
   displayContext: CanvasRenderingContext2D;
   previewContext: CanvasRenderingContext2D;
+  listenersAdded: boolean;
   path: Path2D;
 
 
@@ -123,16 +126,17 @@ class segmentView extends DOMWidgetView {
 
     // idk why i have to add these in the view instead on in the model
     // i'd prefer to have everything live in the model
-    // also can multiple event listeneres end up being attached?
-    // I have no idea
-    this.model.previewCanvas.addEventListener('mouseup', this._mouseUp);
-    this.model.previewCanvas.addEventListener('mousedown', this._mouseDown);
-    this.model.previewCanvas.addEventListener('mousemove', this._mouseMove);
-    this.previewCanvas.addEventListener('wheel', this._wheel);
-    this.previewCanvas.addEventListener('contextmenu', e => {
-      //this doesn't seem to work for widgets :(
-      e.preventDefault();
-    });
+    if (!this.model.listenersAdded){
+      this.model.previewCanvas.addEventListener('mouseup', this._mouseUp);
+      this.model.previewCanvas.addEventListener('mousedown', this._mouseDown);
+      this.model.previewCanvas.addEventListener('mousemove', this._mouseMove);
+      this.previewCanvas.addEventListener('wheel', this._wheel);
+      this.previewCanvas.addEventListener('contextmenu', e => {
+        //this doesn't seem to work for widgets :(
+        e.preventDefault();
+      });
+      this.model.listenersAdded = true;
+    }
     this._sHeight = this.model.classCanvas.height;
     this._sWidth = this.model.classCanvas.width;
   }
