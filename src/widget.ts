@@ -1,38 +1,33 @@
 // Copyright (c) Ian Hunt-Isaak
 // Distributed under the terms of the Modified BSD License.
 
-import {
-  DOMWidgetModel, DOMWidgetView, ISerializers
-} from '@jupyter-widgets/base';
+import { DOMWidgetModel, DOMWidgetView, ISerializers } from '@jupyter-widgets/base';
 
-import {
-  MODULE_NAME, MODULE_VERSION
-} from './version';
+import { MODULE_NAME, MODULE_VERSION } from './version';
 
 // Import the CSS
-import '../css/widget.css'
+import '../css/widget.css';
 
-
-export
-class segmentModel extends DOMWidgetModel {
+export class segmentModel extends DOMWidgetModel {
   defaults() {
-    return {...super.defaults(),
+    return {
+      ...super.defaults(),
       _model_name: segmentModel.model_name,
       _model_module: segmentModel.model_module,
       _model_module_version: segmentModel.model_module_version,
       _view_name: segmentModel.view_name,
       _view_module: segmentModel.view_module,
       _view_module_version: segmentModel.view_module_version,
-      value : 'Hello World',
+      value: 'Hello World',
       width: 700,
-      height: 500
+      height: 500,
     };
   }
 
   static serializers: ISerializers = {
-      ...DOMWidgetModel.serializers,
-      // Add any extra serializers here
-    }
+    ...DOMWidgetModel.serializers,
+    // Add any extra serializers here
+  };
   initialize(attributes: any, options: any) {
     super.initialize(attributes, options);
 
@@ -41,9 +36,9 @@ class segmentModel extends DOMWidgetModel {
     this.classCanvas = document.createElement('canvas');
     this.classContext = getContext(this.classCanvas);
     this.displayContext = getContext(this.displayCanvas);
-    this.previewContext= getContext(this.previewCanvas);
-    this.previewCanvas.id='preview';
-    
+    this.previewContext = getContext(this.previewCanvas);
+    this.previewCanvas.id = 'preview';
+
     this.resizeCanvas();
 
     this.on('msg:custom', this.onCommand.bind(this));
@@ -54,24 +49,17 @@ class segmentModel extends DOMWidgetModel {
     this.previewContext.fillStyle = 'rgba(255, 0, 0, .3)'; //'#a4fae3';
     this.classContext.lineWidth = 2;
     this.classContext.fillStyle = 'rgb(0,255,255)';
-    // this.displayCanvas.addEventListener('mousedown', this._mouseDown);
-    // this.displayCanvas.addEventListener('mousemove', this._mouseMove);
-    // this.displayCanvas.addEventListener('mouseup', this._mouseUp);
-    // this.previewCanvas.addEventListener('mousedown', this._mouseDown);
-    // this.previewCanvas.addEventListener('mousemove', this._mouseMove);
-    // this.previewCanvas.addEventListener('mouseup', this._mouseUp);
     this.displayContext.imageSmoothingEnabled = false;
     this.classContext.imageSmoothingEnabled = false;
     this.listenersAdded = false;
-    
   }
 
-  private onCommand(command: any, buffers: any){
+  private onCommand(command: any, buffers: any) {
     console.log('handling command');
     if (command.name === 'gogogo') {
       console.log('in command zone');
-      this.displayContext.fillStyle='rgba(255,150,0,.5';
-      this.displayContext.fillRect(50,50,200,200);
+      this.displayContext.fillStyle = 'rgba(255,150,0,.5';
+      this.displayContext.fillRect(50, 50, 200, 200);
     }
   }
 
@@ -86,8 +74,8 @@ class segmentModel extends DOMWidgetModel {
   static model_name = 'segmentModel';
   static model_module = MODULE_NAME;
   static model_module_version = MODULE_VERSION;
-  static view_name = 'segmentView';   // Set to null if no view
-  static view_module = MODULE_NAME;   // Set to null if no view
+  static view_name = 'segmentView'; // Set to null if no view
+  static view_module = MODULE_NAME; // Set to null if no view
   static view_module_version = MODULE_VERSION;
   classCanvas: HTMLCanvasElement;
   displayCanvas: HTMLCanvasElement;
@@ -98,11 +86,8 @@ class segmentModel extends DOMWidgetModel {
   listenersAdded: boolean;
 }
 
-
-export
-class segmentView extends DOMWidgetView {
-  render() {
-    console.log('render called');
+export class segmentView extends DOMWidgetView {
+  render(): void {
     const container = document.createElement('div');
     container.setAttribute('position', 'relative');
     this.el.appendChild(container);
@@ -116,12 +101,12 @@ class segmentView extends DOMWidgetView {
 
     // idk why i have to add these in the view instead on in the model
     // i'd prefer to have everything live in the model
-    if (!this.model.listenersAdded){
+    if (!this.model.listenersAdded) {
       this.model.previewCanvas.addEventListener('mouseup', this._mouseUp);
       this.model.previewCanvas.addEventListener('mousedown', this._mouseDown);
       this.model.previewCanvas.addEventListener('mousemove', this._mouseMove);
       this.previewCanvas.addEventListener('wheel', this._wheel);
-      this.previewCanvas.addEventListener('contextmenu', e => {
+      this.previewCanvas.addEventListener('contextmenu', (e) => {
         //this doesn't seem to work for widgets :(
         e.preventDefault();
       });
@@ -215,10 +200,15 @@ class segmentView extends DOMWidgetView {
     //   this.displayCanvas.height
     // );
     //fake image for now
-    this.displayContext.fillStyle='rgba(255,150,0,.5';
-    const wScale = this._sWidth/this.model.classCanvas.width;
-    const hScale =  this._sHeight/this.model.classCanvas.height;
-    this.displayContext.fillRect((50 - this._Sx)/wScale,(50-this._Sy)/hScale,200/wScale,200/hScale);
+    this.displayContext.fillStyle = 'rgba(255,150,0,.5';
+    const wScale = this._sWidth / this.model.classCanvas.width;
+    const hScale = this._sHeight / this.model.classCanvas.height;
+    this.displayContext.fillRect(
+      (50 - this._Sx) / wScale,
+      (50 - this._Sy) / hScale,
+      200 / wScale,
+      200 / hScale
+    );
 
     this.displayContext.globalAlpha = 0.4;
 
@@ -292,7 +282,7 @@ class segmentView extends DOMWidgetView {
 
 // taken from ipycanvas
 function getContext(canvas: HTMLCanvasElement) {
-  const context = canvas.getContext("2d");
+  const context = canvas.getContext('2d');
   if (context === null) {
     throw 'Could not create 2d context.';
   }
