@@ -47,8 +47,7 @@ class segmentModel extends DOMWidgetModel {
     this.resizeCanvas();
 
     this.on('msg:custom', this.onCommand.bind(this));
-    // this._sHeight = this.previewCanvas.height;
-    // this._sWidth = this.previewCanvas.width;
+
     // classCanvas should have the same size as the original image, and be drawn scaled.
     this.classCanvas.width = this.previewCanvas.width;
     this.classCanvas.height = this.previewCanvas.height;
@@ -63,7 +62,6 @@ class segmentModel extends DOMWidgetModel {
     // this.previewCanvas.addEventListener('mouseup', this._mouseUp);
     this.displayContext.imageSmoothingEnabled = false;
     this.classContext.imageSmoothingEnabled = false;
-    this.path = new Path2D();
     this.listenersAdded = false;
     
   }
@@ -74,8 +72,6 @@ class segmentModel extends DOMWidgetModel {
       console.log('in command zone');
       this.displayContext.fillStyle='rgba(255,150,0,.5';
       this.displayContext.fillRect(50,50,200,200);
-      // this.previewContext.fillStyle = 'black';
-      // this.previewContext.fillRect(300,100,100,300);
     }
   }
 
@@ -100,10 +96,6 @@ class segmentModel extends DOMWidgetModel {
   displayContext: CanvasRenderingContext2D;
   previewContext: CanvasRenderingContext2D;
   listenersAdded: boolean;
-  path: Path2D;
-
-
-  // views: Dict<Promise<CanvasView>>;
 }
 
 
@@ -113,9 +105,7 @@ class segmentView extends DOMWidgetView {
     console.log('render called');
     const container = document.createElement('div');
     container.setAttribute('position', 'relative');
-    // container.style.position = 'relative';
     this.el.appendChild(container);
-    // this.model.previewCanvas.style.position = 'absolute';
     container.appendChild(this.model.displayCanvas);
     container.appendChild(this.model.previewCanvas);
 
@@ -144,7 +134,6 @@ class segmentView extends DOMWidgetView {
   // using this to refer to the Drawing rather than
   // the clicked element
   private _mouseDown = (e: MouseEvent): void => {
-    console.log('in mousedown');
     const [mouseX, mouseY] = this.canvasCoords(e);
     if (e.button === 0) {
       this.path = new Path2D();
@@ -192,7 +181,6 @@ class segmentView extends DOMWidgetView {
   };
 
   private _mouseMove = (e: MouseEvent): void => {
-    console.log('mousemove');
     if (this.lassoing) {
       this.previewContext.clearRect(0, 0, this.previewCanvas.width, this.previewCanvas.height);
       const [mouseX, mouseY] = this.canvasCoords(e);
@@ -281,13 +269,6 @@ class segmentView extends DOMWidgetView {
     this.drawImageScaled();
     e.preventDefault();
   };
-  // value_changed() {
-  //   this.el.textContent = this.model.get('value');
-  // }
-  // private resizeCanvas() {
-  //   this.canvas.setAttribute('width', this.model.get('width'));
-  //   this.canvas.setAttribute('height', this.model.get('height'));
-  // }
   model: segmentModel;
   classCanvas: HTMLCanvasElement;
   displayCanvas: HTMLCanvasElement;
