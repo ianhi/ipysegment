@@ -1,22 +1,25 @@
 {
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "composite": true,
     "declaration": true,
-    "esModuleInterop": true,
-    "incremental": true,
-    "module": "es6",
+    "esModuleInterop":true,
+    "lib": ["es2015", "dom"],
+    "module": "commonjs",
     "moduleResolution": "node",
     "noEmitOnError": true,
-    "noImplicitAny": true,
     "noUnusedLocals": true,
-    "preserveWatchOutput": true,
-    "resolveJsonModule": true,
     "outDir": "lib",
+    "resolveJsonModule": true,
     "rootDir": "src",
+    "skipLibCheck": true,
+    "sourceMap": true,
+    // thanks @ ipycanvas
+    // allows initializing things in the initialize method
+    "strictPropertyInitialization": false,
     "strict": true,
-    "strictNullChecks": false,
-    "target": "es6"
+    "target": "es2015"
   },
-  "include": ["src/*"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+  ]
 }
