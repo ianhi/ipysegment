@@ -1,5 +1,7 @@
 ![demo](zoop.gif)
 
+Incomplete as a widget, but there is a working implementation for reference on the standalone branch https://github.com/ianhi/ipysegment/tree/standalone
+
 ## Controls
  - left click to lasso
  - right/middle click to pan
