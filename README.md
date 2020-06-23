@@ -1,6 +1,6 @@
-![demo](zoop.gif)
+![demo](demo.gif)
 
-Incomplete as a widget, but there is a working implementation for reference on the standalone branch https://github.com/ianhi/ipysegment/tree/standalone
+Approaching usefulness! Still no way to extract the labelling data - also currently only allows for a single class.
 
 ## Controls
  - left click to lasso
