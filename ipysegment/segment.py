@@ -16,7 +16,7 @@ from ._frontend import module_name, module_version
 from traitlets import Bool, Bytes, CInt, Enum, Float, Instance, List, Unicode
 
 
-class ExampleWidget(DOMWidget):
+class segmenter(DOMWidget):
     """TODO: Add docstring here
     """
     _model_name = Unicode('segmentModel').tag(sync=True)
@@ -28,6 +28,9 @@ class ExampleWidget(DOMWidget):
 
     value = Unicode('Hello World').tag(sync=True)
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.on_msg(self.handle_msg)
 
     width = CInt(700).tag(sync=True)
     height = CInt(500).tag(sync=True)
@@ -37,3 +40,16 @@ class ExampleWidget(DOMWidget):
             'name': 'gogogo'
         }
         self.send(command, [])
+
+    def yikes(self, start):
+        command = {
+            'name': 'yikes',
+            'start': start
+        }
+        self.send(command, [])
+
+    def handle_msg(self, widget, content, buffers):
+        # print('widget:', widget)
+        # print(content)
+        # self.gogogo()
+        self.yikes(content['start'])
