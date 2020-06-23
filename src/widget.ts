@@ -79,17 +79,23 @@ export class segmentModel extends DOMWidgetModel {
     const imageData = new ImageData(data, width, height);
     this.resizeDataCanvas(`${width}px`, `${height}px`);
     this.imgContext.putImageData(imageData, 0, 0);
+
+    // TODO: this should probably also check for if the layout
+    // has a non square aspect ratio
     const aspectRatio = width / height;
     if (aspectRatio > 1) {
-      this.displayWidth = this.get('layout').get('width');
+      this.displayWidth = parseFloat(this.get('layout').get('width'));
       this.displayHeight = this.displayWidth / aspectRatio;
       this.intrinsicZoom = width / this.displayWidth;
     } else {
-      this.displayHeight = this.get('layout').get('height');
+      this.displayHeight = parseFloat(this.get('layout').get('height'));
+      console.log(this.displayHeight);
+      console.log(aspectRatio);
       this.displayWidth = this.displayHeight * aspectRatio;
       this.intrinsicZoom = height / this.displayHeight;
     }
     this.intrinsicZoom = 1;
+    this.resizeDisplayCanvas();
 
     // eslint-disable-next-line max-len
     // Draw on a temporary off-screen canvas. This is a workaround for `putImageData` to support transparency.
