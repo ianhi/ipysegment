@@ -1,4 +1,10 @@
-#preview {
+.segment-container {
+  width: auto;
+  height: auto;
+  flex: 1 1 auto;
+}
+
+.preview {
   position:absolute;
   top:0px;
   left:0px;

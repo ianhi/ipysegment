@@ -58,10 +58,9 @@ class segmenter(DOMWidget):
         }
         self.send(command, [])
 
-    def yikes(self, start):
+    def beep(self):
         command = {
-            'name': 'yikes',
-            'start': start
+            'name': 'beep'
         }
         self.send(command, [])
 
