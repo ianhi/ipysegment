@@ -8,14 +8,15 @@
 TODO: Add module docstring
 """
 
-from ipywidgets import DOMWidget
-from traitlets import Unicode
+from ipywidgets import DOMWidget, Color
 from ._frontend import module_name, module_version
+from .utils import binary_image
 
 
-from traitlets import Bool, Bytes, CInt, Enum, Float, Instance, List, Unicode
+from traitlets import Bytes, CInt, Enum, Float, Instance, List, Unicode
 
 
+Color()
 class segmenter(DOMWidget):
     """TODO: Add docstring here
     """
@@ -27,13 +28,29 @@ class segmenter(DOMWidget):
     _view_module_version = Unicode(module_version).tag(sync=True)
 
     value = Unicode('Hello World').tag(sync=True)
+    classColor = Color('red').tag(sync=True)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.on_msg(self.handle_msg)
 
     width = CInt(700).tag(sync=True)
-    height = CInt(500).tag(sync=True)
+    height = CInt(700).tag(sync=True)
+
+    def set_image(self, arr):
+        """
+        Set the image to be segmented
+        arr : numpy array
+            Shape (WxHx1) or (WxHx3)
+        TODO: transparency here? I removed the transparency enabling code
+        on the typescript side to make things simpler with the class canvas
+        """
+        image_metadata, image_buffer = binary_image(arr)
+        command = {
+            'name': 'image',
+            'metadata': image_metadata
+        }
+        self.send(command, (image_buffer,))
 
     def gogogo(self):
         command = {

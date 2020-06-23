@@ -19,8 +19,8 @@ export class segmentModel extends DOMWidgetModel {
       _view_module: segmentModel.view_module,
       _view_module_version: segmentModel.view_module_version,
       value: 'Hello World',
-      width: 700,
-      height: 500,
+      // width: 700,
+      // height: 500,
     };
   }
 
@@ -31,15 +31,18 @@ export class segmentModel extends DOMWidgetModel {
   initialize(attributes: any, options: any) {
     super.initialize(attributes, options);
 
+    this.imgCanvas = document.createElement('canvas');
     this.displayCanvas = document.createElement('canvas');
     this.previewCanvas = document.createElement('canvas');
     this.classCanvas = document.createElement('canvas');
+    this.imgContext = getContext(this.imgCanvas);
     this.classContext = getContext(this.classCanvas);
     this.displayContext = getContext(this.displayCanvas);
     this.previewContext = getContext(this.previewCanvas);
     this.previewCanvas.id = 'preview';
+    this.intrinsicZoom = 1;
 
-    this.resizeCanvas();
+    this.resizeDisplayCanvas();
 
     this.on('msg:custom', this.onCommand.bind(this));
 
@@ -57,19 +60,59 @@ export class segmentModel extends DOMWidgetModel {
   private onCommand(command: any, buffers: any) {
     console.log('handling command');
     if (command.name === 'gogogo') {
-      console.log('in command zone');
-      this.displayContext.fillStyle = 'rgba(255,150,0,.5';
-      this.displayContext.fillRect(50, 50, 200, 200);
+      // console.log('in command zone');
+      this.classContext.fillStyle = 'rgba(255,150,0,.5';
+      this.classContext.fillRect(50, 50, 200, 200);
+    } else if (command.name === 'image') {
+      // console.log(buffers);
+      this.putImageData(command.metadata, buffers);
     }
   }
 
-  private resizeCanvas() {
-    this.displayCanvas.setAttribute('width', this.get('width'));
-    this.displayCanvas.setAttribute('height', this.get('height'));
-    this.previewCanvas.setAttribute('width', this.get('width'));
-    this.previewCanvas.setAttribute('height', this.get('height'));
-    this.classCanvas.setAttribute('width', this.get('width'));
-    this.classCanvas.setAttribute('height', this.get('height'));
+  private putImageData(bufferMetadata: any, buffers: any) {
+    // const [bufferMetadata, dx, dy] = args;
+
+    const width = bufferMetadata.shape[1];
+    const height = bufferMetadata.shape[0];
+
+    const data = new Uint8ClampedArray(buffers[0].buffer);
+    const imageData = new ImageData(data, width, height);
+    this.resizeDataCanvas(`${width}px`, `${height}px`);
+    this.imgContext.putImageData(imageData, 0, 0);
+    const aspectRatio = width / height;
+    if (aspectRatio > 1) {
+      this.displayWidth = this.get('layout').get('width');
+      this.displayHeight = this.displayWidth / aspectRatio;
+      this.intrinsicZoom = width / this.displayWidth;
+    } else {
+      this.displayHeight = this.get('layout').get('height');
+      this.displayWidth = this.displayHeight * aspectRatio;
+      this.intrinsicZoom = height / this.displayHeight;
+    }
+    this.intrinsicZoom = 1;
+
+    // eslint-disable-next-line max-len
+    // Draw on a temporary off-screen canvas. This is a workaround for `putImageData` to support transparency.
+    // const offscreenCanvas = document.createElement('canvas');
+    // offscreenCanvas.width = width;
+    // offscreenCanvas.height = height;
+    // getContext(offscreenCanvas).putImageData(imageData, 0, 0);
+
+    // this.displayContext.drawImage(offscreenCanvas, 0, 0);
+  }
+  private resizeDisplayCanvas() {
+    this.displayCanvas.setAttribute('width', `${this.displayWidth}px`);
+    this.displayCanvas.setAttribute('height', `${this.displayHeight}px`);
+    this.previewCanvas.setAttribute('width', `${this.displayWidth}px`);
+    this.previewCanvas.setAttribute('height', `${this.displayHeight}px`);
+    // this.classCanvas.setAttribute('width', `${this.displayWidth}px`);
+    // this.classCanvas.setAttribute('height', `${this.displayHeight}px`);
+  }
+  private resizeDataCanvas(width: string, height: string) {
+    this.imgCanvas.setAttribute('width', width);
+    this.imgCanvas.setAttribute('height', height);
+    this.classCanvas.setAttribute('width', width);
+    this.classCanvas.setAttribute('height', height);
   }
   static model_name = 'segmentModel';
   static model_module = MODULE_NAME;
@@ -77,13 +120,22 @@ export class segmentModel extends DOMWidgetModel {
   static view_name = 'segmentView'; // Set to null if no view
   static view_module = MODULE_NAME; // Set to null if no view
   static view_module_version = MODULE_VERSION;
+  imgCanvas: HTMLCanvasElement;
   classCanvas: HTMLCanvasElement;
   displayCanvas: HTMLCanvasElement;
   previewCanvas: HTMLCanvasElement;
+  //ideally would use OffscreenCanvasRenderingContext2D for img and class
+  // but firefox doesn't implement w/o opt-in yet
+  // https://developer.mozilla.org/en-US/docs/Web/API/OffscreenCanvas#Browser_compatibility
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1390089
+  imgContext: CanvasRenderingContext2D;
   classContext: CanvasRenderingContext2D;
   displayContext: CanvasRenderingContext2D;
   previewContext: CanvasRenderingContext2D;
   listenersAdded: boolean;
+  intrinsicZoom: number;
+  displayWidth: number;
+  displayHeight: number;
 }
 
 export class segmentView extends DOMWidgetView {
@@ -125,8 +177,8 @@ export class segmentView extends DOMWidgetView {
       this.path.moveTo(mouseX, mouseY);
       this.lassoing = true;
     } else if (e.button === 1 || e.button === 2) {
-      this._panStartX = this._Sx + (mouseX * this.intrinsicZoom) / this.userZoom;
-      this._panStartY = this._Sy + (mouseY * this.intrinsicZoom) / this.userZoom;
+      this._panStartX = this._Sx + (mouseX * this.model.intrinsicZoom) / this.userZoom;
+      this._panStartY = this._Sy + (mouseY * this.model.intrinsicZoom) / this.userZoom;
       this.panning = true;
       e.preventDefault();
     }
@@ -177,8 +229,8 @@ export class segmentView extends DOMWidgetView {
       this.previewContext.stroke(this.path);
     } else if (this.panning) {
       const [x, y] = this.canvasCoords(e);
-      this._Sx = this._panStartX - (x * this.intrinsicZoom) / this.userZoom;
-      this._Sy = this._panStartY - (y * this.intrinsicZoom) / this.userZoom;
+      this._Sx = this._panStartX - (x * this.model.intrinsicZoom) / this.userZoom;
+      this._Sy = this._panStartY - (y * this.model.intrinsicZoom) / this.userZoom;
       this.drawImageScaled();
     }
   };
@@ -188,27 +240,27 @@ export class segmentView extends DOMWidgetView {
     // according to the firefox devtools performance thing
     this.displayContext.clearRect(0, 0, this.displayCanvas.width, this.displayCanvas.height);
     // const img = this.img;
-    // this.displayCtx.drawImage(
-    //   img,
-    //   this._Sx, // sx
-    //   this._Sy, // sy
-    //   this._sWidth,
-    //   this._sHeight,
-    //   0, // dx
-    //   0, // dy
-    //   this.displayCanvas.width,
-    //   this.displayCanvas.height
-    // );
-    //fake image for now
-    this.displayContext.fillStyle = 'rgba(255,150,0,.5';
-    const wScale = this._sWidth / this.model.classCanvas.width;
-    const hScale = this._sHeight / this.model.classCanvas.height;
-    this.displayContext.fillRect(
-      (50 - this._Sx) / wScale,
-      (50 - this._Sy) / hScale,
-      200 / wScale,
-      200 / hScale
+    this.displayContext.drawImage(
+      this.model.imgCanvas,
+      this._Sx, // sx
+      this._Sy, // sy
+      this._sWidth,
+      this._sHeight,
+      0, // dx
+      0, // dy
+      this.displayCanvas.width,
+      this.displayCanvas.height
     );
+    //fake image for now
+    // this.displayContext.fillStyle = 'rgba(255,150,0,.5';
+    // const wScale = this._sWidth / this.model.classCanvas.width;
+    // const hScale = this._sHeight / this.model.classCanvas.height;
+    // this.displayContext.fillRect(
+    //   (50 - this._Sx) / wScale,
+    //   (50 - this._Sy) / hScale,
+    //   200 / wScale,
+    //   200 / hScale
+    // );
 
     this.displayContext.globalAlpha = 0.4;
 
@@ -233,8 +285,8 @@ export class segmentView extends DOMWidgetView {
       scale = 1 / 1.1;
     }
     const [x, y] = this.canvasCoords(e);
-    const left = (x * this.intrinsicZoom) / this.userZoom;
-    const down = (y * this.intrinsicZoom) / this.userZoom;
+    const left = (x * this.model.intrinsicZoom) / this.userZoom;
+    const down = (y * this.model.intrinsicZoom) / this.userZoom;
     const X = this._Sx + left;
     const Y = this._Sy + down;
     this.userZoom *= scale;
@@ -271,7 +323,7 @@ export class segmentView extends DOMWidgetView {
   private path: Path2D;
   // private maxCanvasWidth = 500;
   private userZoom = 1;
-  private intrinsicZoom = 1;
+  // private intrinsicZoom = 1;
   private _Sx = 0;
   private _Sy = 0;
   private _sWidth = 0;
