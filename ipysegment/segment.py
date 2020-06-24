@@ -13,7 +13,7 @@ from ._frontend import module_name, module_version
 from .utils import binary_image
 
 
-from traitlets import Bytes, CInt, Enum, Float, Instance, List, Unicode
+from traitlets import Bytes, Bool, CInt, Enum, Float, Instance, List, Unicode
 
 
 class segmenter(DOMWidget):
@@ -28,6 +28,7 @@ class segmenter(DOMWidget):
 
     value = Unicode('Hello World').tag(sync=True)
     classColor = Color('red').tag(sync=True)
+    erasing = Bool(True).tag(sync=True)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

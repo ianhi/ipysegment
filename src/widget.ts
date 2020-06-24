@@ -18,8 +18,8 @@ export class segmentModel extends DOMWidgetModel {
       _view_name: segmentModel.view_name,
       _view_module: segmentModel.view_module,
       _view_module_version: segmentModel.view_module_version,
-      erase_mode: false,
       value: 'Hello World',
+      erase_mode: false,
     };
   }
 
@@ -36,6 +36,7 @@ export class segmentModel extends DOMWidgetModel {
     this.classContext = getContext(this.classCanvas);
 
     this.on('msg:custom', this.onCommand.bind(this));
+    this.on('change:erasing', this._erasingChanged.bind(this));
 
     // classCanvas should have the same size as the original image, and be drawn scaled.
     this.classCanvas.width = 100; //this.previewCanvas.width;
@@ -75,6 +76,15 @@ export class segmentModel extends DOMWidgetModel {
     });
   }
 
+  private _erasingChanged() {
+    const erasing = this.get('erasing');
+    if (erasing) {
+      // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/globalCompositeOperation
+      this.classContext.globalCompositeOperation = 'destination-out';
+    } else {
+      this.classContext.globalCompositeOperation = 'source-over';
+    }
+  }
   private resizeDataCanvas(width: string, height: string) {
     this.imgCanvas.setAttribute('width', width);
     this.imgCanvas.setAttribute('height', height);
@@ -201,7 +211,11 @@ export class segmentView extends DOMWidgetView {
       this.path.closePath();
       this.displayContext.fill(this.path);
       this.previewContext.save();
-      this.previewContext.fillStyle = 'rgb(255, 10, 100)';
+      if (this.model.get('erasing')) {
+        this.previewContext.fillStyle = 'rgba(255,255,255,1)';
+      } else {
+        this.previewContext.fillStyle = 'rgb(255, 10, 100)';
+      }
       this.previewContext.fill(this.path);
       this.model.classContext.drawImage(
         this.previewCanvas,
@@ -244,7 +258,6 @@ export class segmentView extends DOMWidgetView {
     // to not always scale the image. But maybe not necessary, I still seem to get 60 fps
     // according to the firefox devtools performance thing
     this.displayContext.clearRect(0, 0, this.displayCanvas.width, this.displayCanvas.height);
-    // const img = this.img;
     this.displayContext.drawImage(
       this.model.imgCanvas,
       this._Sx, // sx
