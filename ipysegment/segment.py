@@ -16,7 +16,6 @@ from .utils import binary_image
 from traitlets import Bytes, CInt, Enum, Float, Instance, List, Unicode
 
 
-Color()
 class segmenter(DOMWidget):
     """TODO: Add docstring here
     """

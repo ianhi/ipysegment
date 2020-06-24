@@ -18,6 +18,7 @@ export class segmentModel extends DOMWidgetModel {
       _view_name: segmentModel.view_name,
       _view_module: segmentModel.view_module,
       _view_module_version: segmentModel.view_module_version,
+      erase_mode: false,
       value: 'Hello World',
     };
   }
@@ -68,6 +69,10 @@ export class segmentModel extends DOMWidgetModel {
     const imageData = new ImageData(data, this.imgWidth, this.imgHeight);
     this.resizeDataCanvas(`${this.imgWidth}px`, `${this.imgHeight}px`);
     this.imgContext.putImageData(imageData, 0, 0);
+    this._forEachView((view) => {
+      view.resize();
+      view.redraw();
+    });
   }
 
   private resizeDataCanvas(width: string, height: string) {
@@ -139,10 +144,10 @@ export class segmentView extends DOMWidgetView {
     });
     this._sHeight = this.model.classCanvas.height;
     this._sWidth = this.model.classCanvas.width;
-    this.resizeDisplayCanvas();
+    this.resize();
     this.drawImageScaled();
   }
-  private resizeDisplayCanvas() {
+  resize() {
     // TODO: this should probably also check for if the layout
     // has a non square aspect ratio
     // also there are so many different widths to pay attention to!!! grr
