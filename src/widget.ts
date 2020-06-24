@@ -149,8 +149,8 @@ export class segmentView extends DOMWidgetView {
     this.previewCanvas.addEventListener('mousemove', this._mouseMove);
     this.previewCanvas.addEventListener('wheel', this._wheel);
     this.previewCanvas.addEventListener('contextmenu', (e) => {
-      //this doesn't seem to work for widgets :(
       e.preventDefault();
+      e.stopPropagation();
     });
     this._sHeight = this.model.classCanvas.height;
     this._sWidth = this.model.classCanvas.width;
