@@ -16,13 +16,17 @@ from numpy import frombuffer, uint8, copy
 from traitlets import Bytes, Bool, CInt, Unicode
 import logging
 logger = logging.getLogger()
-
+import zlib
+# import sys
 
 def deserializeImage(json, obj):
     logger.debug('yikes')
     logger.debug('deserializing:', json)
     _bytes = None if json['data'] is None else json['data'].tobytes()
     if _bytes is not None:
+        # print(sys.getsizeof(_bytes))
+        _bytes = zlib.decompress(_bytes)
+        # print(sys.getsizeof(_bytes))
         # copy to make it a writeable array - not necessary, but nice
         obj.labels = copy(
             frombuffer(_bytes, dtype=uint8).reshape(

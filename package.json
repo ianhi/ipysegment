@@ -51,7 +51,8 @@
     "lint:check": "eslint . --ext .ts"
   },
   "dependencies": {
-    "@jupyter-widgets/base": "^1.1.10 || ^2.0.1 || ^3"
+    "@jupyter-widgets/base": "^1.1.10 || ^2.0.1 || ^3",
+    "pako": "^1.0.11"
   },
   "devDependencies": {
     "@phosphor/application": "^1.6.0",
@@ -59,6 +60,7 @@
     "@types/expect.js": "^0.3.29",
     "@types/mocha": "^5.2.5",
     "@types/node": "^10.11.6",
+    "@types/pako": "^1.0.1",
     "@types/webpack-env": "^1.13.6",
     "@typescript-eslint/eslint-plugin": "^3.2.0",
     "@typescript-eslint/parser": "^3.2.0",

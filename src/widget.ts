@@ -5,6 +5,7 @@ import { DOMWidgetModel, DOMWidgetView, ISerializers, Dict } from '@jupyter-widg
 
 import { MODULE_NAME, MODULE_VERSION } from './version';
 
+import * as pako from 'pako';
 // import { toBytes } from './utils';
 
 // Import the CSS
@@ -15,7 +16,9 @@ function serializeImageData(image: ImageData) {
   // but then it just becomes mysterious bytes on the python side
   // this seems easier to figure out. maybe revist one day?
   console.log('serializing');
-  return { width: image.width, height: image.height, data: new DataView(image.data.buffer) };
+  const data = pako.deflate(new Uint8Array(image.data.buffer));
+  return { width: image.width, height: image.height, data: data };
+  // return { width: image.width, height: image.height, data: new DataView(image.data.buffer) };
 }
 
 function deserializeImageData(dataview: DataView | null) {
