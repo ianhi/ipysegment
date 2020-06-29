@@ -5,8 +5,29 @@ import { DOMWidgetModel, DOMWidgetView, ISerializers, Dict } from '@jupyter-widg
 
 import { MODULE_NAME, MODULE_VERSION } from './version';
 
+// import { toBytes } from './utils';
+
 // Import the CSS
 import '../css/widget.css';
+
+function serializeImageData(image: ImageData) {
+  // seems like it would make more sense to just pass the whole object
+  // but then it just becomes mysterious bytes on the python side
+  // this seems easier to figure out. maybe revist one day?
+  console.log('serializing');
+  return { width: image.width, height: image.height, data: new DataView(image.data.buffer) };
+}
+
+function deserializeImageData(dataview: DataView | null) {
+  //pretty sure that using this is not helpful??
+  // oh nah this will be useful for setting the classes if you have some already
+  return null;
+  // if (dataview === null) {
+  //   return null;
+  // }
+
+  // return new Uint8ClampedArray(dataview.buffer);
+}
 
 export class segmentModel extends DOMWidgetModel {
   defaults() {
@@ -18,15 +39,18 @@ export class segmentModel extends DOMWidgetModel {
       _view_name: segmentModel.view_name,
       _view_module: segmentModel.view_module,
       _view_module_version: segmentModel.view_module_version,
-      value: 'Hello World',
       erase_mode: false,
     };
   }
 
   static serializers: ISerializers = {
     ...DOMWidgetModel.serializers,
-    // Add any extra serializers here
+    _labels: {
+      serialize: serializeImageData,
+      deserialize: deserializeImageData,
+    },
   };
+
   initialize(attributes: any, options: any) {
     super.initialize(attributes, options);
 
@@ -47,7 +71,6 @@ export class segmentModel extends DOMWidgetModel {
   }
 
   private onCommand(command: any, buffers: any) {
-    console.log('handling command');
     if (command.name === 'gogogo') {
       this.classContext.fillStyle = 'rgba(255,150,0,.5';
       this.classContext.fillRect(50, 50, 200, 200);
@@ -57,7 +80,23 @@ export class segmentModel extends DOMWidgetModel {
       this._forEachView((view) => {
         view.redraw();
       });
+    } else if (command.name === 'gimme') {
+      this.gimme();
     }
+  }
+
+  private async gimme() {
+    // const bytes = await toBytes(this.classCanvas);
+    const bytes = this.classContext.getImageData(
+      0,
+      0,
+      this.classCanvas.width,
+      this.classCanvas.height
+    );
+
+    console.log(bytes);
+    this.set('_labels', bytes);
+    this.save_changes();
   }
 
   putImageData(bufferMetadata: any, buffers: any) {
@@ -127,8 +166,8 @@ export class segmentModel extends DOMWidgetModel {
 export class segmentView extends DOMWidgetView {
   render(): void {
     const container = document.createElement('div');
-    container.style.width = '500px';
-    container.style.height = '500px';
+    // container.style.width = '500px';
+    // container.style.height = '500px';
     this.displayCanvas = document.createElement('canvas');
     this.previewCanvas = document.createElement('canvas');
     this.previewCanvas.classList.add('preview');
@@ -165,11 +204,13 @@ export class segmentView extends DOMWidgetView {
     // maybe css trickery that I don't understand?
     const aspectRatio = this.model.imgWidth / this.model.imgHeight;
     if (aspectRatio > 1) {
-      this.displayWidth = 500; //parseFloat(this.model.get('layout').get('width'));
+      // this.displayWidth = 500;
+      this.displayWidth = parseFloat(this.model.get('layout').get('width'));
       this.displayHeight = this.displayWidth / aspectRatio;
       this.intrinsicZoom = this.model.imgWidth / this.displayWidth;
     } else {
-      this.displayHeight = 500; // parseFloat(this.model.get('layout').get('height'));
+      // this.displayHeight = 500;
+      this.displayHeight = parseFloat(this.model.get('layout').get('height'));
       this.displayWidth = this.displayHeight * aspectRatio;
       this.intrinsicZoom = this.model.imgHeight / this.displayHeight;
     }
