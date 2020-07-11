@@ -6,10 +6,14 @@ import { DOMWidgetModel, DOMWidgetView, ISerializers, Dict } from '@jupyter-widg
 import { MODULE_NAME, MODULE_VERSION } from './version';
 
 import * as pako from 'pako';
+import { data_union_serialization, getArray, listenToUnion } from 'jupyter-dataserializers';
+
+// import ndarray = require('ndarray');
 // import { toBytes } from './utils';
 
 // Import the CSS
 import '../css/widget.css';
+import ndarray from 'ndarray';
 
 function serializeImageData(image: ImageData) {
   // seems like it would make more sense to just pass the whole object
@@ -52,10 +56,14 @@ export class segmentModel extends DOMWidgetModel {
       serialize: serializeImageData,
       deserialize: deserializeImageData,
     },
+    data: data_union_serialization,
   };
 
   initialize(attributes: any, options: any) {
     super.initialize(attributes, options);
+
+    console.log('yikes');
+    listenToUnion(this, 'data', this._updateClassData.bind(this), true);
 
     this.imgCanvas = document.createElement('canvas');
     this.classCanvas = document.createElement('canvas');
@@ -100,6 +108,25 @@ export class segmentModel extends DOMWidgetModel {
     console.log(bytes);
     this.set('_labels', bytes);
     this.save_changes();
+  }
+
+  private _updateClassData() {
+    console.log('here?');
+    const data = getArray(this.get('data'));
+    if (data) {
+      const imageData = new ImageData(
+        new Uint8ClampedArray(data.data),
+        data.shape[0],
+        data.shape[1]
+      );
+      this.classContext.putImageData(imageData, 0, 0);
+      console.log(this.classCanvas);
+    }
+    this._forEachView((view) => {
+      view.resize();
+      view.redraw();
+    });
+    console.log(data);
   }
 
   putImageData(bufferMetadata: any, buffers: any) {
@@ -180,7 +207,7 @@ export class segmentView extends DOMWidgetView {
     container.appendChild(this.displayCanvas);
     container.appendChild(this.previewCanvas);
 
-    console.log(this.el);
+    // console.log(this.el);
     // this.el
     this.previewContext = getContext(this.previewCanvas);
     this.displayContext = getContext(this.displayCanvas);
@@ -276,6 +303,13 @@ export class segmentView extends DOMWidgetView {
       this.drawImageScaled();
       this.lassoing = false;
       this.previewContext.clearRect(0, 0, this.previewCanvas.width, this.previewCanvas.height);
+      // sync the data after all the drawing to keep drawing as snappy as possible
+      const h = this.model.classCanvas.height;
+      const w = this.model.classCanvas.width;
+      const imgData = this.model.classContext.getImageData(0, 0, w, h);
+      const nd = ndarray(imgData.data, [w, h, 4]);
+      this.model.set('data', nd);
+      this.model.save_changes();
     }
     this.panning = false;
   };

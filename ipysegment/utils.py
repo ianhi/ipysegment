@@ -6,18 +6,18 @@ https://github.com/martinRenou/ipycanvas/blob/4d1fdea1b42bd963115cb881ee9d0810ef
 """Binary module."""
 from io import BytesIO
 
-from PIL import Image as PILImage
+# from PIL import Image as PILImage
 
 import numpy as np
 
 
-def image_bytes_to_array(im_bytes):
-    """Turn raw image bytes into a NumPy array."""
-    im_file = BytesIO(im_bytes)
+# def image_bytes_to_array(im_bytes):
+#     """Turn raw image bytes into a NumPy array."""
+#     im_file = BytesIO(im_bytes)
 
-    im = PILImage.open(im_file)
+#     im = PILImage.open(im_file)
 
-    return np.array(im)
+#     return np.array(im)
 
 
 def binary_image(ar):

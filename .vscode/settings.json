@@ -2,5 +2,5 @@
     "python.linting.pylintEnabled": false,
     "python.linting.pylamaEnabled": true,
     "python.linting.enabled": true,
-    "python.pythonPath": "/home/ian/anaconda3/envs/colonies/bin/python"
+    "python.pythonPath": "/home/ian/anaconda3/envs/ipysegment/bin/python"
 }

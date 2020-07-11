@@ -12,12 +12,16 @@ from ipywidgets import DOMWidget, Color
 from ._frontend import module_name, module_version
 from .utils import binary_image
 from numpy import frombuffer, uint8, copy
+import zlib
+from ipydatawidgets import shape_constraints, DataUnion, data_union_serialization
+import numpy as np
+# from ipydatawidgets.traits import shape_constraints
 
 from traitlets import Bytes, Bool, CInt, Unicode
 import logging
 logger = logging.getLogger()
-import zlib
 # import sys
+
 
 def deserializeImage(json, obj):
     logger.debug('yikes')
@@ -40,7 +44,6 @@ labels_serialization = {
     'from_json': deserializeImage,
 }
 
-
 class segmenter(DOMWidget):
     """TODO: Add docstring here
     """
@@ -55,6 +58,12 @@ class segmenter(DOMWidget):
     erasing = Bool(True).tag(sync=True)
     # underlying info for labels - this handles the syncing to ts
     _labels = Bytes(default_value=None, allow_none=True, read_only=True).tag(sync=True, **labels_serialization)
+    # yikes = 
+
+    data = DataUnion(
+        np.zeros([10, 10, 4], dtype=np.uint8),
+        dtype='uint8', shape_constraint=shape_constraints(None, None, 4),  # 2D RGBA
+    ).tag(sync=True, **data_union_serialization)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
