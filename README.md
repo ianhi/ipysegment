@@ -1,6 +1,9 @@
 ![demo](demo.gif)
 
-Approaching usefulness! Still no way to extract the labelling data - also currently only allows for a single class.
+Now on PyPi!!
+Still a little rough around the edges, but definitely usable at this point
+
+Currently you can only control loading images or changing to erasing programmatically. PRs to add controls using ipywidgets very welcome :)
 
 ## Controls
  - left click to lasso
@@ -25,10 +28,10 @@ You can install using `pip`:
 pip install ipysegment
 ```
 
-Or if you use jupyterlab:
+If you use jupyterlab make sure you have installed jupyterlab-manager
 
 ```bash
-pip install ipysegment
+conda install -c conda-forge nodejs=12
 jupyter labextension install @jupyter-widgets/jupyterlab-manager
 ```
 
